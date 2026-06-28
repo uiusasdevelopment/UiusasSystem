@@ -1,0 +1,1494 @@
+@font-face {
+    font-family: 'NintendoSwitchUI';
+    src: url('NINTENDOSWITCHUI.TTF') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body, html {
+    width: 100%;
+    height: 100%;
+    font-family: 'NintendoSwitchUI', 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+    background-color: #000;
+}
+
+.screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: none;
+    transition: opacity 0.5s ease-out, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-zoom-out {
+    opacity: 0 !important;
+    transform: scale(1.2) !important;
+}
+
+.screen.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* --- Lock Screen --- */
+#lock-screen {
+    background-color: #e6e6e6; /* Lighter background from the new image */
+    color: #111; /* Dark text */
+    justify-content: space-between;
+    z-index: 10;
+}
+
+.lock-top-bar {
+    display: flex;
+    justify-content: space-between;
+    padding: 40px 50px;
+    font-size: 1.5rem;
+    font-weight: 800;
+}
+
+.lock-top-left {
+    color: #000;
+}
+
+.lock-top-right {
+    color: #ff0000; /* Red color for Nintendo Switch 2 */
+}
+
+.lock-content {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.home-icon-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.home-circle {
+    width: 130px;
+    height: 130px;
+    border: 6px solid #111;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #111;
+}
+
+.home-svg {
+    width: 70px;
+    height: 70px;
+}
+
+.lock-bottom-area {
+    position: relative;
+    height: 150px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-bottom: 20px;
+}
+
+.lock-bottom-left {
+    position: absolute;
+    left: 50px;
+    bottom: 50px;
+    display: flex;
+    align-items: center;
+    font-size: 1.2rem;
+    color: #555;
+}
+
+.btn-b {
+    background-color: #111;
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-right: 8px;
+}
+
+.lock-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.footer-text {
+    font-size: 1.4rem;
+    color: #222;
+    font-weight: 300;
+}
+
+.dots-container {
+    display: flex;
+    gap: 20px;
+}
+
+.dot {
+    width: 14px;
+    height: 14px;
+    border: 2px solid #222;
+    border-radius: 50%;
+    transition: background-color 0.1s;
+}
+
+.dot.filled {
+    background-color: #222;
+}
+
+/* --- Home Menu --- */
+#home-menu {
+    background-color: #ebebeb;
+    color: #333;
+}
+
+.home-zoom-enter {
+    transform: scale(1.3);
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 30px 40px;
+    height: 100px;
+}
+
+.profiles {
+    display: flex;
+    gap: 15px;
+}
+
+.profile-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #ccc;
+    border: 2px solid transparent;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease;
+    overflow: hidden;
+}
+
+.profile-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-icon:hover {
+    transform: scale(1.15);
+}
+
+.profile-icon:hover::after {
+    content: '';
+    position: absolute;
+    top: -4px; right: -4px; bottom: -4px; left: -4px;
+    border: 3px solid #00c3e3;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(0, 195, 227, 0.8);
+    pointer-events: none;
+}
+
+.profile-icon.active-profile::before {
+    content: '';
+    position: absolute;
+    top: -3px; right: -3px; bottom: -3px; left: -3px;
+    border: 3px solid #00a651;
+    border-radius: 50%;
+}
+
+.profile-icon.mario { background-color: #e60012; }
+.profile-icon.zelda { background-color: #008060; border-color: #00b080; }
+
+.status-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.battery-container {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.status-svg {
+    display: block;
+}
+
+.game-title-popup {
+    position: absolute;
+    bottom: 105%;
+    left: 50%;
+    transform: translateX(-50%) translateY(15px);
+    width: 320px;
+    height: auto;
+    font-size: 1.15rem;
+    font-weight: bold;
+    color: #00c3e3;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s cubic-bezier(0.1, 0.9, 0.2, 1);
+    pointer-events: none;
+    z-index: 10;
+    line-height: 1.25;
+}
+
+.game-title-popup.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.games-carousel {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 0 50px;
+    gap: 20px;
+    overflow-x: auto;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
+
+.games-carousel::-webkit-scrollbar {
+    display: none; /* Chrome, Safari and Opera */
+}
+
+.game-card {
+    width: 256px;
+    height: 256px;
+    background-color: #fff;
+    border-radius: 12px;
+    flex-shrink: 0;
+    position: relative;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+}
+
+.game-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+    border: 4px solid #00c3e3;
+}
+
+.game-card.empty {
+    background-color: #fff;
+    border: 2px solid #ddd;
+    box-shadow: none;
+}
+
+.dock-container {
+    height: 140px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.dock {
+    display: flex;
+    background-color: rgba(255, 255, 255, 0.7);
+    padding: 10px 20px;
+    border-radius: 40px;
+    gap: 15px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.dock-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    position: relative;
+    transition: transform 0.15s ease;
+}
+
+.dock-icon:hover {
+    transform: scale(1.15);
+}
+
+.dock-icon:hover::after {
+    content: '';
+    position: absolute;
+    top: -4px; right: -4px; bottom: -4px; left: -4px;
+    border: 3px solid #00c3e3;
+    border-radius: 50%;
+    box-shadow: 0 0 8px rgba(0, 195, 227, 0.8);
+    pointer-events: none;
+}
+
+.dock-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 50%;
+}
+
+.dock-icon.active-dock {
+    background: white;
+    position: relative;
+    border: none;
+    background-clip: padding-box;
+    box-shadow: 0 0 0 3px transparent;
+}
+.dock-icon.active-dock::before {
+    content: '';
+    position: absolute;
+    top: -3px; right: -3px; bottom: -3px; left: -3px;
+    z-index: -1;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00c3e3, #a200ff);
+}
+
+.dock-label {
+    margin-top: 15px;
+    color: #00c3e3;
+    font-weight: 600;
+}
+
+.bottom-bar {
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    border-top: 1px solid #ddd;
+    font-size: 1.1rem;
+}
+
+.controller-info {
+    display: flex;
+    align-items: center;
+}
+
+.joycon-img {
+    height: 52px;
+    width: auto;
+    object-fit: contain;
+}
+
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    color: #333;
+}
+
+.btn-icon {
+    background-color: #333;
+    color: white;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.95rem;
+    flex-shrink: 0;
+}
+
+/* --- Profile Manager Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    z-index: 200;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+}
+
+.modal-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.modal-box {
+    background-color: #ebebeb;
+    width: 680px;
+    max-width: 90%;
+    border-radius: 20px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+    transform: scale(0.9);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 4px solid #333;
+    color: #333;
+}
+
+.modal-overlay.active .modal-box {
+    transform: scale(1);
+}
+
+.modal-header {
+    background-color: #2b2b2b;
+    color: white;
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    font-size: 1.6rem;
+    font-weight: bold;
+}
+
+.close-btn {
+    background: #444;
+    border: none;
+    color: white;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.15s ease, transform 0.15s ease;
+}
+
+.close-btn:hover {
+    background: #ff0055;
+    transform: scale(1.1);
+}
+
+.modal-content {
+    padding: 40px;
+}
+
+.modal-subtitle {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.3rem;
+    color: #555;
+}
+
+.profiles-list {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.profile-card {
+    background: white;
+    border: 3px solid #ddd;
+    border-radius: 16px;
+    padding: 24px 16px;
+    width: 170px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    cursor: pointer;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    position: relative;
+}
+
+.profile-card:hover {
+    transform: scale(1.06);
+    border-color: #00c3e3;
+    box-shadow: 0 10px 20px rgba(0, 195, 227, 0.25);
+}
+
+.profile-card.active {
+    border-color: #00a651;
+}
+
+.profile-avatar {
+    width: 84px; height: 84px;
+    border-radius: 50%;
+    background-color: #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.8rem;
+    color: white;
+    font-weight: bold;
+    overflow: hidden;
+}
+
+.profile-avatar img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+}
+
+.profile-avatar.mario { background-color: #e60012; }
+.profile-avatar.zelda { background-color: #008060; }
+.profile-avatar.add-icon { background-color: #444; color: #00c3e3; }
+
+.profile-name {
+    font-weight: bold;
+    font-size: 1.15rem;
+    color: #222;
+    text-align: center;
+}
+
+.profile-badge {
+    background-color: #00a651;
+    color: white;
+    font-size: 0.85rem;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-weight: bold;
+}
+
+.edit-profile-btn {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: #444;
+    color: white;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 34px; height: 34px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+    z-index: 5;
+}
+
+.edit-profile-btn:hover {
+    background: #00c3e3;
+    transform: scale(1.15);
+}
+
+.delete-profile-btn {
+    position: absolute;
+    top: 10px; left: 10px;
+    background: #444;
+    color: white;
+    border: 2px solid white;
+    border-radius: 50%;
+    width: 34px; height: 34px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+    z-index: 5;
+}
+
+.delete-profile-btn:hover {
+    background: #e60012;
+    transform: scale(1.15);
+}
+
+/* --- Quick Settings Menu --- */
+.quick-menu-container {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.quick-menu-icon {
+    background: rgba(0, 0, 0, 0.4);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-menu-icon:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: #00c3e3;
+    transform: scale(1.1);
+    color: #00c3e3;
+}
+
+.quick-menu-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+}
+
+.quick-menu-container:hover .quick-menu-options {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.quick-btn {
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.quick-btn:hover {
+    background: rgba(0, 0, 0, 0.9);
+    border-color: #00c3e3;
+    color: #00c3e3;
+    transform: scale(1.1);
+}
+
+/* --- Edit Icon Modal (Nintendo Switch Style) --- */
+.edit-body {
+    background-color: #2b2b2b;
+    color: #fff;
+    overflow: hidden;
+    user-select: none; /* Prevent text selection to feel more like an app */
+}
+
+.edit-box {
+    background-color: #2d2d2d;
+    color: white;
+    width: 820px;
+    border: 3px solid #555;
+    position: relative;
+}
+
+.edit-header {
+    background-color: #202020;
+    border-bottom: 2px solid #444;
+}
+
+.edit-modal-content {
+    display: flex;
+    padding: 50px 60px;
+    gap: 60px;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.edit-left {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.edit-option-btn {
+    background-color: #383838;
+    border: 3px solid transparent;
+    border-radius: 8px;
+    padding: 16px 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.edit-option-btn:hover, .edit-option-btn.active-edit-option {
+    border-color: #00c3e3;
+    box-shadow: 0 0 12px rgba(0, 195, 227, 0.4);
+    background-color: #404040;
+}
+
+.option-preview-char {
+    width: 40px; height: 40px;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.option-preview-char img {
+    max-width: 100%; max-height: 100%; object-fit: contain;
+}
+
+.option-preview-bg {
+    width: 36px; height: 36px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.save-icon-btn {
+    background-color: #00e599;
+    color: #000;
+    font-weight: bold;
+    font-size: 1.2rem;
+    padding: 14px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 25px;
+    width: 200px;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+    font-family: inherit;
+}
+
+.save-icon-btn:hover {
+    background-color: #20ffb0;
+    transform: scale(1.05);
+}
+
+.edit-right {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.icon-large-preview {
+    width: 230px; height: 230px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 2px solid rgba(255,255,255,0.1);
+}
+
+.icon-large-preview img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+}
+
+/* --- Selector Sub-grid --- */
+.selector-subgrid {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background-color: #2b2b2b;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+}
+
+.grid-container {
+    padding: 30px;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 16px;
+    flex: 1;
+}
+
+.grid-container .char-swatch {
+    width: 85px; height: 85px;
+    background: #383838;
+    border-radius: 10px;
+    border: 3px solid transparent;
+    cursor: pointer;
+    display: flex; justify-content: center; align-items: center;
+    padding: 6px;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.grid-container .char-swatch:hover {
+    transform: scale(1.1);
+    border-color: #00c3e3;
+    background: #444;
+}
+
+.grid-container .char-swatch img {
+    max-width: 100%; max-height: 100%; object-fit: contain;
+}
+
+.color-swatch {
+    width: 85px; height: 85px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 3px solid transparent;
+    transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.color-swatch:hover {
+    transform: scale(1.1);
+    border-color: white;
+}
+
+.edit-name-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.switch-input {
+    background-color: #383838;
+    border: 3px solid #555;
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: white;
+    font-size: 1.2rem;
+    font-family: inherit;
+    font-weight: bold;
+    outline: none;
+    transition: border-color 0.15s ease;
+}
+
+.switch-input:focus {
+    border-color: #00c3e3;
+    box-shadow: 0 0 10px rgba(0, 195, 227, 0.4);
+}
+
+.more-profiles-circle {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #444;
+    color: white;
+    font-size: 1.6rem;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s ease;
+}
+
+.more-profiles-circle:hover {
+    transform: scale(1.1);
+    border-color: #00c3e3;
+    background-color: #555;
+}
+
+/* --- Select a User Banner (Game Launch) --- */
+#game-launch-modal {
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(5px);
+}
+
+.launch-banner {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ebebeb;
+    color: #333;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    z-index: 101;
+    animation: slideUpBanner 0.25s cubic-bezier(0.1, 0.9, 0.2, 1);
+}
+
+@keyframes slideUpBanner {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.launch-header {
+    padding: 24px 60px 16px;
+    border-bottom: 2px solid #888;
+    margin: 0 40px;
+}
+
+.launch-header h2 {
+    font-size: 1.8rem;
+    font-weight: normal;
+    color: #222;
+    margin: 0;
+}
+
+.launch-profiles-container {
+    padding: 50px 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 35px;
+    min-height: 260px;
+    overflow-x: auto;
+}
+
+.launch-card {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    border: 4px solid transparent;
+    border-radius: 2px;
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    background-color: white;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    flex-shrink: 0;
+}
+
+.launch-card-avatar {
+    width: 140px;
+    height: 140px;
+    position: relative;
+    overflow: hidden;
+}
+
+.launch-card-name {
+    width: 140px;
+    padding: 10px 6px;
+    background-color: white;
+    color: #333;
+    font-size: 1.15rem;
+    font-weight: bold;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-top: 1px solid #eee;
+}
+
+.launch-card:hover, .launch-card.selected {
+    border-color: #00c3e3;
+    transform: scale(1.08);
+    box-shadow: 0 8px 25px rgba(0, 195, 227, 0.4);
+}
+
+.launch-add-btn {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 2px solid #777;
+    background-color: transparent;
+    color: #555;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.4rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex-shrink: 0;
+    margin-left: 10px;
+}
+
+.launch-add-btn:hover {
+    border-color: #00c3e3;
+    color: #00c3e3;
+    transform: scale(1.1);
+}
+
+.launch-footer {
+    padding: 16px 60px;
+    border-top: 2px solid #888;
+    margin: 0 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.launch-footer .footer-right {
+    display: flex;
+    gap: 35px;
+    align-items: center;
+}
+
+/* --- Presentation Viewer Modal --- */
+.viewer-box {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    max-height: none;
+    background-color: #000;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: none;
+    border: none;
+}
+
+/* --- Nintendo Loading Screen --- */
+.nintendo-loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #111;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 30px 40px;
+    box-sizing: border-box;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.nintendo-loading-screen.visible {
+    opacity: 1;
+    pointer-events: all;
+}
+
+.nls-top-left {
+    align-self: flex-start;
+}
+
+.nls-pill-logo {
+    color: #a8a8a8;
+    font-family: 'Arial', sans-serif;
+    font-weight: 900;
+    font-size: 1.2rem;
+    border: 3px solid #a8a8a8;
+    border-radius: 25px;
+    padding: 4px 14px;
+    display: inline-block;
+    letter-spacing: 0.5px;
+}
+
+.nls-bottom-right {
+    align-self: flex-end;
+}
+
+.nls-system-logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nls-svg-icon {
+    width: 50px;
+    height: 50px;
+}
+
+.nls-system-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.1;
+}
+
+.nls-brand {
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    font-weight: 400;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+}
+
+.nls-name {
+    color: #fff;
+    font-family: 'Arial', sans-serif;
+    font-weight: 900;
+    font-size: 1.8rem;
+    letter-spacing: 1px;
+}
+
+.viewer-header {
+    height: 60px;
+    background-color: #333;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+}
+
+.viewer-header h3 {
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+.close-viewer-btn {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.8rem;
+    cursor: pointer;
+}
+
+.viewer-content {
+    flex: 1;
+    background-color: #fff;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    overflow: auto;
+}
+
+.slide-display {
+    text-align: center;
+    max-width: 800px;
+}
+
+.slide-display h1 {
+    font-size: 2.5rem;
+    color: #222;
+    margin-bottom: 20px;
+}
+
+.slide-display p {
+    font-size: 1.4rem;
+    color: #555;
+    white-space: pre-line;
+    line-height: 1.6;
+}
+
+.viewer-footer {
+    height: 70px;
+    background-color: #ddd;
+    border-top: 2px solid #ccc;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+}
+
+.viewer-nav-btn {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.15s ease, background-color 0.15s ease;
+}
+
+.viewer-nav-btn:hover {
+    background-color: #00c3e3;
+    transform: scale(1.05);
+}
+
+.laser-btn {
+    background-color: #ff3b30;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.laser-btn:hover {
+    transform: scale(1.05);
+    background-color: #ff1a1a;
+    box-shadow: 0 0 10px rgba(255,59,48,0.8);
+}
+
+.laser-btn.active {
+    background-color: white;
+    color: #ff3b30;
+    border: 2px solid #ff3b30;
+    box-shadow: 0 0 15px rgba(255,59,48,1);
+}
+
+.laser-active-cursor {
+    cursor: crosshair !important;
+}
+
+#viewer-slide-counter {
+    font-size: 1.3rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* --- Presentation Configurator Modal (Dark Theme Switch Style) --- */
+.config-box.dark-theme {
+    width: 900px;
+    max-height: 90vh;
+    background-color: #2b2b2b;
+    color: #ebebeb;
+    border-radius: 4px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+    display: flex;
+    flex-direction: column;
+}
+
+.config-header {
+    background-color: #333;
+    color: #ebebeb;
+    border-bottom: 2px solid #444;
+}
+
+.config-banner-warning {
+    background-color: #3f3f3f;
+    color: #00c3e3;
+    padding: 12px 20px;
+    border-left: 5px solid #00c3e3;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    border-bottom: 1px solid #444;
+}
+
+.config-content {
+    padding: 20px 30px;
+    display: flex;
+    gap: 30px;
+    flex: 1;
+    overflow: hidden;
+}
+
+.config-list-section {
+    flex: 1;
+    border-right: 2px solid #444;
+    padding-right: 20px;
+    overflow-y: auto;
+}
+
+.config-list-section h3, .config-form-section h3 {
+    margin-top: 0;
+    color: #00c3e3;
+    border-bottom: 2px solid #444;
+    padding-bottom: 10px;
+    font-size: 1.3rem;
+}
+
+.config-item {
+    background: #3a3a3a;
+    border: 2px solid transparent;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.1s, border-color 0.1s;
+}
+
+.config-item:hover {
+    transform: scale(1.02);
+    border-color: #00c3e3;
+}
+
+.config-item-info strong {
+    display: block;
+    font-size: 1.1rem;
+    color: #fff;
+    margin-bottom: 4px;
+}
+
+.config-item-info span {
+    font-size: 0.85rem;
+    color: #aaa;
+}
+
+.config-item-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.btn-edit-pres, .btn-del-pres, .btn-move-up, .btn-move-down {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-move-up, .btn-move-down { background-color: #555; color: white; width: 36px; display:flex; justify-content:center; align-items:center; }
+.btn-move-up:hover, .btn-move-down:hover { background-color: #00c3e3; }
+
+.btn-edit-pres { background-color: #555; color: white; }
+.btn-edit-pres:hover { background-color: #00c3e3; }
+
+.btn-del-pres { background-color: #e60012; color: white; }
+.btn-del-pres:hover { background-color: #ff4e50; }
+
+.add-pres-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #444;
+    color: #00c3e3;
+    border: 2px solid #555;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.2s, border-color 0.2s;
+}
+
+.add-pres-btn:hover {
+    background-color: #333;
+    border-color: #00c3e3;
+}
+
+.config-form-section {
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.config-form-scroll {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-weight: bold;
+    color: #ccc;
+    font-size: 0.95rem;
+}
+
+.dark-input {
+    background-color: #444;
+    color: #fff;
+    border: 2px solid #555;
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 1rem;
+}
+
+.dark-input:focus {
+    border-color: #00c3e3;
+    outline: none;
+    background-color: #3a3a3a;
+}
+
+.file-picker-group {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background-color: #444;
+    padding: 10px;
+    border-radius: 6px;
+    border: 2px solid #555;
+}
+
+.file-picker-group:hover {
+    border-color: #00c3e3;
+}
+
+.file-picker-btn {
+    background-color: #555;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+
+.file-picker-btn:hover {
+    background-color: #00c3e3;
+}
+
+.file-name-display {
+    color: #aaa;
+    font-size: 0.9rem;
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.config-form-actions {
+    display: flex;
+    gap: 15px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 2px solid #444;
+}
+
+.btn-cancel, .btn-save {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 6px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.btn-cancel { background-color: #555; color: #fff; }
+.btn-cancel:hover { background-color: #777; }
+
+.btn-save { background-color: #00c3e3; color: #222; }
+.btn-save:hover { background-color: #00e5ff; }
+
+.config-footer {
+    padding: 15px 30px;
+    background-color: #333;
+    border-top: 2px solid #444;
+    display: flex;
+    justify-content: center;
+}
+
+.btn-download-gh {
+    background: linear-gradient(135deg, #ffc800, #ff8c00);
+    color: #222;
+    border: none;
+    padding: 14px 30px;
+    border-radius: 30px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.4);
+    transition: transform 0.15s ease;
+}
+
+.btn-download-gh:hover {
+    transform: scale(1.05);
+}

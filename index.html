@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Switch Presentation Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+</head>
+<body>
+    <!-- Quick Settings Menu (Hover to expand) -->
+    <div class="quick-menu-container">
+        <div class="quick-menu-icon" title="Menu Rápido">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.06-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.73,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.06,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.49-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/>
+            </svg>
+        </div>
+        <div class="quick-menu-options">
+            <button id="fullscreen-toggle-btn" class="quick-btn" title="Alternar Tela Cheia">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                </svg>
+            </button>
+            <button id="mute-toggle-btn" class="quick-btn" title="Ligar/Desligar Som">
+                <svg id="icon-volume-on" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+                <svg id="icon-volume-off" viewBox="0 0 24 24" width="22" height="22" fill="currentColor" style="display:none;">
+                    <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Lock Screen -->
+    <div id="lock-screen" class="screen active">
+
+        
+        <div class="lock-content">
+            <div class="home-icon-container">
+                <div class="home-circle">
+                    <svg viewBox="0 0 24 24" class="home-svg"><path fill="currentColor" d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                </div>
+            </div>
+        </div>
+        
+        <div class="lock-bottom-area">
+            <div class="lock-bottom-left">
+                <span class="btn-b">B</span> Back
+            </div>
+            <div class="lock-footer">
+                <div class="footer-text">Press the same button three times</div>
+                <div class="dots-container">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Home Menu -->
+    <div id="home-menu" class="screen">
+        <header class="top-bar">
+            <div class="profiles">
+                <div class="profile-icon mario active-profile" title="Professor(a)" data-name="Professor(a)"></div>
+                <div class="profile-icon zelda" title="Convidado" data-name="Convidado"></div>
+            </div>
+            <div class="status-info">
+                <span id="clock">12:00 PM</span>
+                <svg class="status-svg wifi-svg" viewBox="0 0 24 24" width="22" height="22" fill="currentColor">
+                    <path d="M12.01 21.49L23.64 7c-.45-.34-4.93-4-11.64-4C5.28 3 .81 6.66.36 7l11.63 14.49.01.01.01-.01z"/>
+                </svg>
+                <div class="battery-container">
+                    <span>100%</span>
+                    <svg class="status-svg battery-svg" viewBox="0 0 26 14" width="28" height="15">
+                        <rect x="1" y="1" width="21" height="12" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>
+                        <rect x="3.5" y="3.5" width="16" height="7" rx="1" fill="currentColor"/>
+                        <path d="M24 4.5v5c1 0 1.5-.5 1.5-1.5v-2c0-1-.5-1.5-1.5-1.5z" fill="currentColor"/>
+                    </svg>
+                </div>
+            </div>
+        </header>
+        <main class="games-carousel">
+        </main>
+
+        <div class="dock-container">
+            <div class="dock">
+                <div class="dock-icon"><img src="icons/1_online.png" alt="Nintendo Switch Online"></div>
+                <div class="dock-icon"><img src="icons/2_nso.png" alt="Novidades e Benefícios"></div>
+                <div class="dock-icon"><img src="icons/3_news.png" alt="Notícias"></div>
+                <div class="dock-icon"><img src="icons/4_eshop.png" alt="Nintendo eShop"></div>
+                <div class="dock-icon"><img src="icons/5_album.png" alt="Álbum"></div>
+                <div class="dock-icon active-dock"><img src="icons/7_joycons.png" alt="Hub de Apresentações"></div>
+                <div class="dock-icon"><img src="icons/6_controllers.png" alt="Controles"></div>
+                <div class="dock-icon"><img src="icons/9_brightness.png" alt="Brilho da Tela"></div>
+                <div class="dock-icon" id="btn-presentation-config"><img src="icons/8_settings.png" alt="Configurador de Apresentações"></div>
+                <div class="dock-icon"><img src="icons/10_power.png" alt="Modo de Descanso"></div>
+            </div>
+            <div class="dock-label">Hub de Apresentações</div>
+        </div>
+
+        <footer class="bottom-bar">
+            <div class="controller-info">
+                <img src="icons/joycon.png" alt="Joy-Con" class="joycon-img">
+            </div>
+            <div class="action-hints">
+                <span class="action-btn"><span class="btn-icon">A</span> OK</span>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Profile Manager Modal -->
+    <div id="profile-modal" class="modal-overlay">
+        <div class="modal-box">
+            <header class="modal-header">
+                <h2>Página do Usuário</h2>
+                <button class="close-btn">✕</button>
+            </header>
+            <div class="modal-content">
+                <div class="modal-subtitle">Selecione um usuário ativo para suas apresentações:</div>
+                <div class="profiles-list">
+                    <div class="profile-card active" data-profile="mario">
+                        <div class="profile-avatar mario"></div>
+                        <span class="profile-name">Professor(a)</span>
+                        <span class="profile-badge">Ativo</span>
+                        <button class="edit-profile-btn" title="Editar Ícone">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        </button>
+                    </div>
+                    <div class="profile-card" data-profile="zelda">
+                        <div class="profile-avatar zelda"></div>
+                        <span class="profile-name">Convidado</span>
+                        <button class="edit-profile-btn" title="Editar Ícone">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                        </button>
+                    </div>
+                    <div class="profile-card add-profile">
+                        <div class="profile-avatar add-icon">+</div>
+                        <span class="profile-name">Novo Perfil</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Icon Modal (Nintendo Switch Style) -->
+    <div id="edit-icon-modal" class="modal-overlay">
+        <div class="modal-box edit-box">
+            <header class="modal-header edit-header">
+                <h2>Editar Ícone</h2>
+                <button class="close-edit-btn">✕</button>
+            </header>
+            <div class="edit-modal-content">
+                <div class="edit-left">
+                    <div class="edit-name-group">
+                        <label for="edit-profile-name">Nome do Usuário:</label>
+                        <input type="text" id="edit-profile-name" class="switch-input" maxlength="15">
+                    </div>
+                    <div class="edit-option-btn active-edit-option" id="btn-select-character">
+                        <span>Personagem / Mii</span>
+                        <div class="option-preview-char" id="preview-char-thumb"></div>
+                    </div>
+                    <div class="edit-option-btn" id="btn-select-bg">
+                        <span>Fundo</span>
+                        <div class="option-preview-bg" id="preview-bg-thumb" style="background-color: #e60012;"></div>
+                    </div>
+                    <button class="save-icon-btn" id="save-icon-btn">OK</button>
+                </div>
+                <div class="edit-right">
+                    <div class="icon-large-preview" id="large-icon-preview" style="background-color: #e60012;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Character Selector Sub-grid -->
+            <div id="character-selector" class="selector-subgrid" style="display: none;">
+                <div class="selector-header">
+                    <h3>Selecione o Personagem</h3>
+                    <button class="close-subgrid-btn" id="close-char-subgrid">✕</button>
+                </div>
+                <div class="grid-container" id="characters-grid">
+                    <!-- Loaded dynamically via JS -->
+                </div>
+            </div>
+
+            <!-- Background Selector Sub-grid -->
+            <div id="bg-selector" class="selector-subgrid" style="display: none;">
+                <div class="selector-header">
+                    <h3>Selecione a Cor de Fundo</h3>
+                    <button class="close-subgrid-btn" id="close-bg-subgrid">✕</button>
+                </div>
+                <div class="grid-container colors-grid">
+                    <div class="color-swatch" style="background-color: #e60012;" data-color="#e60012"></div>
+                    <div class="color-swatch" style="background-color: #ff6b00;" data-color="#ff6b00"></div>
+                    <div class="color-swatch" style="background-color: #ffc800;" data-color="#ffc800"></div>
+                    <div class="color-swatch" style="background-color: #00a651;" data-color="#00a651"></div>
+                    <div class="color-swatch" style="background-color: #008060;" data-color="#008060"></div>
+                    <div class="color-swatch" style="background-color: #00c3e3;" data-color="#00c3e3"></div>
+                    <div class="color-swatch" style="background-color: #0066cc;" data-color="#0066cc"></div>
+                    <div class="color-swatch" style="background-color: #1f3a93;" data-color="#1f3a93"></div>
+                    <div class="color-swatch" style="background-color: #4b0082;" data-color="#4b0082"></div>
+                    <div class="color-swatch" style="background-color: #800080;" data-color="#800080"></div>
+                    <div class="color-swatch" style="background-color: #ff007f;" data-color="#ff007f"></div>
+                    <div class="color-swatch" style="background-color: #e84393;" data-color="#e84393"></div>
+                    <div class="color-swatch" style="background-color: #d63031;" data-color="#d63031"></div>
+                    <div class="color-swatch" style="background-color: #fdcb6e;" data-color="#fdcb6e"></div>
+                    <div class="color-swatch" style="background-color: #00b894;" data-color="#00b894"></div>
+                    <div class="color-swatch" style="background-color: #0984e3;" data-color="#0984e3"></div>
+                    <div class="color-swatch" style="background-color: #6c5ce7;" data-color="#6c5ce7"></div>
+                    <div class="color-swatch" style="background-color: #a29bfe;" data-color="#a29bfe"></div>
+                    <div class="color-swatch" style="background-color: #fab1a0;" data-color="#fab1a0"></div>
+                    <div class="color-swatch" style="background-color: #ffeaa7;" data-color="#ffeaa7"></div>
+                    <div class="color-swatch" style="background-color: #333333;" data-color="#333333"></div>
+                    <div class="color-swatch" style="background-color: #636e72;" data-color="#636e72"></div>
+                    <div class="color-swatch" style="background-color: #b2bec3;" data-color="#b2bec3"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Launch / Select User Banner -->
+    <div id="game-launch-modal" class="modal-overlay">
+        <div class="launch-banner">
+            <header class="launch-header">
+                <h2>Quem está apresentando hoje?</h2>
+            </header>
+            <div class="launch-profiles-container" id="launch-profiles-list">
+                <!-- Dynamically rendered profile cards -->
+            </div>
+            <footer class="launch-footer">
+                <div class="footer-left">
+                    <svg viewBox="0 0 24 24" width="36" height="36" fill="currentColor"><path d="M4 6h16a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2zm2 2v8h3V8H6zm5 0v8h8V8h-8z"/></svg>
+                </div>
+                <div class="footer-right">
+                    <span class="action-btn" id="launch-back-btn"><span class="btn-icon">B</span> Back</span>
+                    <span class="action-btn" id="launch-ok-btn"><span class="btn-icon">A</span> OK</span>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Presentation Viewer Modal -->
+    <div id="presentation-viewer-modal" class="modal-overlay">
+        <div class="viewer-box">
+            <header class="viewer-header">
+                <h3 id="viewer-title">Apresentação</h3>
+                <button class="close-viewer-btn" id="close-viewer-btn">✕</button>
+            </header>
+            <div class="viewer-content" id="viewer-content-area">
+                <!-- Iframe or slide view -->
+            </div>
+            <footer class="viewer-footer">
+                <button class="viewer-nav-btn" id="viewer-prev-btn">◀ Anterior</button>
+                <div style="display:flex; align-items:center; gap: 15px;">
+                    <button id="viewer-laser-btn" class="laser-btn" title="Laser Pointer">🔴 Laser</button>
+                    <span id="viewer-slide-counter">Slide 1 / 1</span>
+                </div>
+                <button class="viewer-nav-btn" id="viewer-next-btn">Próximo ▶</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Presentation Configurator Modal -->
+    <div id="presentation-config-modal" class="modal-overlay">
+        <div class="modal-box config-box dark-theme">
+            <header class="modal-header config-header">
+                <h2>Configurações de Apresentações</h2>
+                <button class="close-btn" id="close-config-btn">✕</button>
+            </header>
+            <div class="config-banner-warning">
+                💡 <b>Repositório Local:</b> Escolha os arquivos do seu PC. Para uso no GitHub, certifique-se de que estes arquivos também foram copiados para a pasta raiz do projeto.
+            </div>
+            <div class="config-content">
+                <div class="config-list-section">
+                    <h3>Lista de Apresentações</h3>
+                    <div id="config-presentations-list"></div>
+                    <button class="add-pres-btn" id="btn-add-presentation">+ Nova Apresentação</button>
+                </div>
+                <div class="config-form-section" id="config-form-area" style="display: none;">
+                    <h3 id="config-form-title">Editar Apresentação</h3>
+                    <div class="config-form-scroll">
+                        <div class="form-group">
+                            <label>Título:</label>
+                            <input type="text" id="cfg-title" class="switch-input dark-input" placeholder="Ex: Biologia Molecular">
+                        </div>
+                        <div class="form-group">
+                            <label>Subtítulo:</label>
+                            <input type="text" id="cfg-subtitle" class="switch-input dark-input" placeholder="Ex: Aula Prática">
+                        </div>
+                        <div class="form-group">
+                            <label>Capa da Apresentação (Imagem):</label>
+                            <div class="file-picker-group">
+                                <label for="cfg-cover-file" class="file-picker-btn">📁 Escolher Imagem</label>
+                                <input type="file" id="cfg-cover-file" accept="image/*" style="display: none;">
+                                <span class="file-name-display" id="cfg-cover-display">Nenhuma imagem</span>
+                                <input type="hidden" id="cfg-cover">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Arquivo da Apresentação (PDF, PPT):</label>
+                            <div class="file-picker-group">
+                                <label for="cfg-file-input" class="file-picker-btn">📁 Escolher Arquivo</label>
+                                <input type="file" id="cfg-file-input" accept=".pdf,.ppt,.pptx" style="display: none;">
+                                <span class="file-name-display" id="cfg-file-display">Nenhum arquivo</span>
+                                <input type="hidden" id="cfg-file">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Slides de Texto Livres (Opcional):</label>
+                            <textarea id="cfg-slides" class="switch-input dark-input" rows="3" placeholder="Ex:\nCapa | Introdução ao tema\nTópico 1 | Conteúdo"></textarea>
+                        </div>
+                    </div>
+                    <div class="config-form-actions">
+                        <button class="btn-cancel" id="cfg-cancel-btn">Cancelar</button>
+                        <button class="btn-save" id="cfg-save-btn">Salvar</button>
+                    </div>
+                </div>
+            </div>
+            <footer class="config-footer">
+                <button class="btn-download-gh" id="btn-download-config">📥 Baixar config_data.js para o GitHub</button>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Uiusascorp Loading Screen -->
+    <div id="game-loading-screen" class="nintendo-loading-screen" style="display: none;">
+        <div class="nls-top-left">
+            <div class="nls-pill-logo">Uiusascorp</div>
+        </div>
+        <div class="nls-bottom-right">
+            <div class="nls-system-logo">
+                <svg viewBox="0 0 100 100" class="nls-svg-icon">
+                    <!-- Left Joy-Con equivalent (rounded left, straight right, with stick and button) -->
+                    <path d="M40 10 H45 V90 H40 C20 90 20 10 40 10 Z" fill="none" stroke="white" stroke-width="8"/>
+                    <circle cx="33" cy="35" r="5" fill="white"/>
+                    <!-- Right Joy-Con equivalent (straight left, rounded right, with stick and button) -->
+                    <path d="M55 10 H60 C80 10 80 90 60 90 H55 V10 Z" fill="white"/>
+                    <circle cx="68" cy="55" r="5" fill="black"/>
+                </svg>
+                <div class="nls-system-text">
+                    <span class="nls-brand">UIUSAS</span>
+                    <span class="nls-name">SYSTEM&trade;</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config_data.js"></script>
+    <script src="rpg_grid.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
