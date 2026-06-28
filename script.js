@@ -272,12 +272,26 @@ document.addEventListener('DOMContentLoaded', () => {
     function saveProfiles() {
         if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             localStorage.setItem('switch_profiles_data', JSON.stringify(profiles));
+            try {
+                fetch('http://localhost:3000/api/save-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profiles, presentations })
+                }).catch(e => console.log('Node server offline'));
+            } catch(e) {}
         }
     }
 
     function savePresentations() {
         if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             localStorage.setItem('switch_presentations_data', JSON.stringify(presentations));
+            try {
+                fetch('http://localhost:3000/api/save-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ profiles, presentations })
+                }).catch(e => console.log('Node server offline'));
+            } catch(e) {}
         }
     }
 
