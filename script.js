@@ -1439,7 +1439,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const socket = io();
                 
                 socket.on('laser_move', (data) => {
-                    if (isPresentationViewActive && document.getElementById('viewer-laser-btn').classList.contains('active')) {
+                    const viewerModal = document.getElementById('presentation-viewer-modal');
+                    const isActive = viewerModal && viewerModal.classList.contains('active');
+                    if (isActive && document.getElementById('viewer-laser-btn').classList.contains('active')) {
                         const canvas = document.getElementById('laser-overlay');
                         if (canvas) {
                             const rect = canvas.getBoundingClientRect();
@@ -1451,7 +1453,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 socket.on('slide_control', (data) => {
-                    if (isPresentationViewActive) {
+                    const viewerModal = document.getElementById('presentation-viewer-modal');
+                    const isActive = viewerModal && viewerModal.classList.contains('active');
+                    if (isActive) {
                         const prevBtn = document.getElementById('viewer-prev-btn');
                         const nextBtn = document.getElementById('viewer-next-btn');
                         if (data.action === 'prev' && prevBtn) prevBtn.click();
