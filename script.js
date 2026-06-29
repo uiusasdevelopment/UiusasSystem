@@ -957,11 +957,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = canvas.getContext('2d');
         let isDrawing = false;
         let points = [];
+        
+        window.addLaserPoint = (x, y) => {
+            if (!isLaserActive) return;
+            points.push({ x, y, time: Date.now() });
+        };
 
         canvas.addEventListener('mousedown', (e) => {
             if (!isLaserActive) return;
             isDrawing = true;
-            points.push({ x: e.offsetX, y: e.offsetY, time: Date.now() });
+            window.addLaserPoint(e.offsetX, e.offsetY);
         });
 
         canvas.addEventListener('mousemove', (e) => {
@@ -1443,11 +1448,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const isActive = viewerModal && viewerModal.classList.contains('active');
                     if (isActive && document.getElementById('viewer-laser-btn').classList.contains('active')) {
                         const canvas = document.getElementById('laser-overlay');
-                        if (canvas) {
+                        if (canvas && typeof window.addLaserPoint === 'function') {
                             const rect = canvas.getBoundingClientRect();
                             const x = data.x * rect.width;
                             const y = data.y * rect.height;
-                            laserPoints.push({ x, y, time: performance.now() });
+                            window.addLaserPoint(x, y);
                         }
                     }
                 });
