@@ -269,6 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try { presentations = JSON.parse(savedPres); } catch (e) { console.error('Error loading presentations', e); }
     }
 
+    // Restore tags/search filter
+    let activeTagFilter = null;
+
     function saveProfiles() {
         if (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             localStorage.setItem('switch_profiles_data', JSON.stringify(profiles));
@@ -686,7 +689,58 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!gamesCarousel) return;
         gamesCarousel.innerHTML = '';
 
-        presentations.forEach(pres => {
+        // --- Search & Tags bar (injected once) ---
+        let searchBar = document.getElementById('pres-search-bar');
+        if (!searchBar) {
+            const searchWrap = document.createElement('div');
+            searchWrap.id = 'pres-search-wrap';
+            searchWrap.style.cssText = 'width:100%;display:flex;align-items:center;gap:10px;padding:0 20px 10px;';
+            searchBar = document.createElement('input');
+            searchBar.id = 'pres-search-bar';
+            searchBar.type = 'text';
+            searchBar.placeholder = '🔍 Buscar apresentação...';
+            searchBar.style.cssText = 'flex:1;padding:8px 14px;border-radius:20px;border:1px solid #444;background:#2a2a2a;color:#fff;font-size:0.9rem;outline:none;';
+            searchBar.addEventListener('input', renderPresentationsCarousel);
+            searchWrap.appendChild(searchBar);
+            gamesCarousel.parentNode.insertBefore(searchWrap, gamesCarousel);
+        }
+
+        const searchTerm = (document.getElementById('pres-search-bar')?.value || '').toLowerCase();
+
+        // Collect all unique tags
+        const allTags = [...new Set(presentations.flatMap(p => p.tags || []))];
+        let tagBar = document.getElementById('pres-tag-bar');
+        if (!tagBar && allTags.length > 0) {
+            tagBar = document.createElement('div');
+            tagBar.id = 'pres-tag-bar';
+            tagBar.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap;padding:0 20px 12px;';
+            gamesCarousel.parentNode.insertBefore(tagBar, gamesCarousel);
+        }
+        if (tagBar) {
+            tagBar.innerHTML = '';
+            // 'Todos' button
+            const allBtn = document.createElement('button');
+            allBtn.textContent = 'Todos';
+            allBtn.style.cssText = `padding:4px 12px;border-radius:12px;border:none;cursor:pointer;font-size:0.8rem;background:${activeTagFilter === null ? '#00c3e3' : '#444'};color:#fff;`;
+            allBtn.addEventListener('click', () => { activeTagFilter = null; renderPresentationsCarousel(); });
+            tagBar.appendChild(allBtn);
+            allTags.forEach(tag => {
+                const btn = document.createElement('button');
+                btn.textContent = `#${tag}`;
+                btn.style.cssText = `padding:4px 12px;border-radius:12px;border:none;cursor:pointer;font-size:0.8rem;background:${activeTagFilter === tag ? '#00c3e3' : '#333'};color:#fff;`;
+                btn.addEventListener('click', () => { activeTagFilter = tag; renderPresentationsCarousel(); });
+                tagBar.appendChild(btn);
+            });
+        }
+
+        // Filter presentations
+        const filtered = presentations.filter(p => {
+            const matchSearch = !searchTerm || p.title.toLowerCase().includes(searchTerm) || (p.subtitle || '').toLowerCase().includes(searchTerm);
+            const matchTag = !activeTagFilter || (p.tags && p.tags.includes(activeTagFilter));
+            return matchSearch && matchTag;
+        });
+
+        filtered.forEach(pres => {
             const card = document.createElement('div');
             card.className = 'game-card';
             card.style.background = pres.bgColor || 'linear-gradient(135deg, #ff4e50, #f9d423)';
@@ -700,6 +754,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 titleSpan.className = 'placeholder-title';
                 titleSpan.textContent = pres.title;
                 card.appendChild(titleSpan);
+            }
+
+            // Tags badges on card
+            if (pres.tags && pres.tags.length > 0) {
+                const tagsDiv = document.createElement('div');
+                tagsDiv.style.cssText = 'position:absolute;bottom:4px;left:4px;display:flex;gap:4px;flex-wrap:wrap;';
+                pres.tags.slice(0, 3).forEach(tag => {
+                    const badge = document.createElement('span');
+                    badge.textContent = `#${tag}`;
+                    badge.style.cssText = 'background:rgba(0,0,0,0.7);color:#fff;font-size:0.6rem;padding:2px 6px;border-radius:8px;';
+                    tagsDiv.appendChild(badge);
+                });
+                card.style.position = 'relative';
+                card.appendChild(tagsDiv);
             }
 
             // Create a title popup scoped to this card
@@ -728,14 +796,12 @@ document.addEventListener('DOMContentLoaded', () => {
             gamesCarousel.appendChild(card);
         });
 
-        const emptySlots = Math.max(4, 6 - presentations.length);
+        // empty slots
+        const emptySlots = Math.max(0, 5 - filtered.length);
         for (let i = 0; i < emptySlots; i++) {
             const emptyCard = document.createElement('div');
             emptyCard.className = 'game-card empty';
             emptyCard.addEventListener('mouseenter', playSelect);
-            emptyCard.addEventListener('click', () => {
-                playSelect();
-            });
             gamesCarousel.appendChild(emptyCard);
         }
     }
@@ -754,6 +820,14 @@ document.addEventListener('DOMContentLoaded', () => {
     let pdfDoc = null;
     let isPdf = false;
 
+    // Apply active profile accent color to viewer header
+    function applyProfileTheme() {
+        const activeProfile = profiles.find(p => p.active);
+        if (!activeProfile) return;
+        const header = document.querySelector('.viewer-header');
+        if (header) header.style.borderBottom = `3px solid ${activeProfile.bgColor}`;
+    }
+
     async function openPresentationViewer(presId) {
         activePresentation = presentations.find(p => p.id === presId) || presentations[0];
         if (!activePresentation || !viewerModal) return;
@@ -762,15 +836,28 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSlideIndex = 0;
         pdfDoc = null;
         isPdf = false;
+        applyProfileTheme();
 
-        if (activePresentation.fileUrl && activePresentation.fileUrl.toLowerCase().endsWith('.pdf')) {
+        // Detect video
+        const fileUrl = activePresentation.fileUrl || '';
+        const isVideo = fileUrl.toLowerCase().endsWith('.mp4') || fileUrl.toLowerCase().endsWith('.webm') || fileUrl.toLowerCase().endsWith('.ogg');
+        if (isVideo) {
+            viewerContentArea.innerHTML = `<video src="${fileUrl}" controls autoplay style="max-width:100%;max-height:100%;border-radius:8px;box-shadow:0 10px 40px rgba(0,0,0,0.8);"></video>`;
+            if (viewerPrevBtn) viewerPrevBtn.style.display = 'none';
+            if (viewerNextBtn) viewerNextBtn.style.display = 'none';
+            if (viewerSlideCounter) viewerSlideCounter.textContent = 'Vídeo';
+            viewerModal.classList.add('active');
+            return;
+        }
+
+        if (fileUrl && fileUrl.toLowerCase().endsWith('.pdf')) {
             isPdf = true;
             viewerContentArea.innerHTML = '<div class="slide-display"><p style="color:white; font-size: 1.5rem;">Carregando PDF...</p></div>';
             viewerModal.classList.add('active');
             try {
                 if (typeof pdfjsLib !== 'undefined') {
                     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-                    pdfDoc = await pdfjsLib.getDocument(activePresentation.fileUrl).promise;
+                    pdfDoc = await pdfjsLib.getDocument(fileUrl).promise;
                     renderSlideContent();
                 } else {
                     viewerContentArea.innerHTML = '<div class="slide-display"><p style="color:white;">Erro: PDF.js não carregado.</p></div>';
@@ -889,6 +976,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 <p style="font-size: 1.5rem;">${slide.content || ''}</p>
             </div>
         `;
+
+        // Broadcast current notes to remote controller via socket
+        if (slide.notes && typeof io !== 'undefined') {
+            try { io().emit('slide_notes', { notes: slide.notes, slideNum: currentSlideIndex + 1, total: slides.length }); } catch(e) {}
+        }
 
         if (viewerSlideCounter) viewerSlideCounter.textContent = `Slide ${currentSlideIndex + 1} / ${slides.length}`;
         if (viewerPrevBtn) {
@@ -1159,10 +1251,11 @@ document.addEventListener('DOMContentLoaded', () => {
         presentations.forEach((pres, index) => {
             const item = document.createElement('div');
             item.className = 'config-item';
-            item.innerHTML = `
+        item.innerHTML = `
                 <div class="config-item-info">
                     <strong>${pres.title}</strong>
                     <span>${pres.subtitle || 'Sem subtítulo'} ${pres.fileUrl ? '📄 (Arquivo Web/PDF)' : `🎞️ (${pres.slides ? pres.slides.length : 0} slides)`}</span>
+                    ${(pres.tags && pres.tags.length > 0) ? `<div style="margin-top:4px;">${pres.tags.map(t => `<span style="background:#333;color:#aaa;font-size:0.7rem;padding:2px 8px;border-radius:10px;margin-right:4px;">#${t}</span>`).join('')}</div>` : ''}
                 </div>
                 <div class="config-item-actions">
                     <button class="btn-move-up" title="Mover para Cima">⬆</button>
@@ -1212,7 +1305,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     if (cfgSubtitle) cfgSubtitle.value = pres.subtitle || '';
                     if (cfgCover) { cfgCover.value = pres.coverUrl || ''; cfgCoverDisplay.textContent = pres.coverUrl || 'Nenhuma imagem'; }
                     if (cfgFile) { cfgFile.value = pres.fileUrl || ''; cfgFileDisplay.textContent = pres.fileUrl || 'Nenhum arquivo'; }
-                    if (cfgSlides) cfgSlides.value = (pres.slides || []).map(s => `${s.title || 'Slide'} | ${s.content || ''}`).join('\n');
+                    if (cfgSlides) cfgSlides.value = (pres.slides || []).map(s => `${s.title || 'Slide'} | ${s.content || ''}${s.notes ? ` || ${s.notes}` : ''}`).join('\n');
+                    const tagsInput = document.getElementById('cfg-tags');
+                    if (tagsInput) tagsInput.value = (pres.tags || []).join(', ');
                     if (configFormArea) configFormArea.style.display = 'flex';
                 });
             }
@@ -1298,12 +1393,21 @@ document.addEventListener('DOMContentLoaded', () => {
             const subtitle = (cfgSubtitle && cfgSubtitle.value.trim()) || '';
             const rawSlides = cfgSlides ? cfgSlides.value.split('\n').filter(line => line.trim() !== '') : [];
             const slides = rawSlides.map((line, idx) => {
-                const parts = line.split('|');
+                // Format: "Título | Conteúdo || Notas do apresentador"
+                const noteSplit = line.split('||');
+                const mainPart = noteSplit[0];
+                const notes = (noteSplit[1] || '').trim();
+                const parts = mainPart.split('|');
                 return {
                     title: (parts[0] || `Slide ${idx + 1}`).trim(),
-                    content: (parts.slice(1).join('|') || '').trim()
+                    content: (parts.slice(1).join('|') || '').trim(),
+                    notes: notes || undefined
                 };
             });
+
+            // Tags
+            const tagsInput = document.getElementById('cfg-tags');
+            const tags = tagsInput ? tagsInput.value.split(',').map(t => t.trim()).filter(Boolean) : [];
 
             let finalCoverUrl = editingPresId ? (presentations.find(p => p.id === editingPresId)?.coverUrl || '') : '';
             let finalFileUrl = editingPresId ? (presentations.find(p => p.id === editingPresId)?.fileUrl || '') : '';
@@ -1358,6 +1462,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (finalCoverUrl) p.coverUrl = finalCoverUrl;
                         if (finalFileUrl) p.fileUrl = finalFileUrl;
                         p.slides = slides;
+                        p.tags = tags;
                     }
                 } else {
                     const newPres = {
@@ -1367,10 +1472,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         coverUrl: finalCoverUrl,
                         bgColor: palettes[Math.floor(Math.random() * palettes.length)],
                         fileUrl: finalFileUrl,
-                        slides
+                        slides,
+                        tags
                     };
                     presentations.push(newPres);
                 }
+
+                // Backup automático
+                autoBackup();
 
                 // Automação: Enviar pro servidor salvar o config_data.js
                 try {
@@ -1416,6 +1525,77 @@ document.addEventListener('DOMContentLoaded', () => {
             URL.revokeObjectURL(url);
             alert('✅ Arquivo config_data.js baixado com sucesso! Substitua-o na pasta do projeto e suba para o GitHub.');
         });
+    }
+
+    // ---- SLIDE THUMBNAIL NAVIGATOR ----
+    // Adds a small thumbnail strip below the slide counter
+    let thumbGridVisible = false;
+    const thumbGridBtn = document.createElement('button');
+    thumbGridBtn.id = 'thumb-grid-btn';
+    thumbGridBtn.textContent = '⊞';
+    thumbGridBtn.title = 'Grade de Slides';
+    thumbGridBtn.style.cssText = 'background:#333;border:none;color:white;font-size:1.2rem;cursor:pointer;padding:4px 10px;border-radius:6px;transition:background 0.2s;';
+    thumbGridBtn.addEventListener('mouseenter', playSelect);
+    thumbGridBtn.addEventListener('click', () => {
+        playSelect();
+        thumbGridVisible = !thumbGridVisible;
+        const existingGrid = document.getElementById('thumb-grid-overlay');
+        if (existingGrid) { existingGrid.remove(); return; }
+        if (!isPdf || !pdfDoc) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'thumb-grid-overlay';
+        overlay.style.cssText = 'position:absolute;bottom:60px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.92);border-radius:12px;padding:16px;display:flex;flex-wrap:wrap;gap:10px;max-width:90vw;max-height:60vh;overflow-y:auto;z-index:1000;box-shadow:0 8px 32px rgba(0,0,0,0.8);';
+
+        const viewerBox = document.querySelector('.viewer-box');
+        if (viewerBox) viewerBox.style.position = 'relative';
+        if (viewerBox) viewerBox.appendChild(overlay);
+
+        for (let i = 1; i <= pdfDoc.numPages; i++) {
+            const thumbWrapper = document.createElement('div');
+            thumbWrapper.style.cssText = 'cursor:pointer;border-radius:6px;overflow:hidden;border:2px solid transparent;transition:border-color 0.2s;';
+            if (i === currentSlideIndex + 1) thumbWrapper.style.borderColor = '#00c3e3';
+
+            const thumbCanvas = document.createElement('canvas');
+            thumbCanvas.width = 120;
+            thumbCanvas.height = 80;
+            thumbCanvas.style.display = 'block';
+            thumbWrapper.appendChild(thumbCanvas);
+
+            const pageLabel = document.createElement('div');
+            pageLabel.textContent = i;
+            pageLabel.style.cssText = 'text-align:center;color:#aaa;font-size:0.7rem;padding:2px;';
+            thumbWrapper.appendChild(pageLabel);
+
+            overlay.appendChild(thumbWrapper);
+
+            thumbWrapper.addEventListener('click', () => {
+                playTick();
+                currentSlideIndex = i - 1;
+                renderSlideContent();
+                overlay.remove();
+                thumbGridVisible = false;
+            });
+
+            // Render thumbnail async
+            (async () => {
+                try {
+                    const page = await pdfDoc.getPage(i);
+                    const vp = page.getViewport({ scale: 120 / page.getViewport({ scale: 1 }).width });
+                    thumbCanvas.height = vp.height;
+                    await page.render({ canvasContext: thumbCanvas.getContext('2d'), viewport: vp }).promise;
+                } catch(e) { /* skip failed thumb */ }
+            })();
+        }
+    });
+
+    // Inject the thumb button into the viewer footer
+    const viewerFooter = document.querySelector('.viewer-footer');
+    if (viewerFooter) {
+        const counterSpan = document.getElementById('viewer-slide-counter');
+        if (counterSpan && counterSpan.parentNode) {
+            counterSpan.parentNode.insertBefore(thumbGridBtn, counterSpan.nextSibling);
+        }
     }
 
     // --- Controle Remoto ---

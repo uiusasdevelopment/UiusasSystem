@@ -3,7 +3,7 @@ window.INITIAL_CONFIG = {
     {
         "id": "p1",
         "name": "Wilson",
-        "tileId": 88,
+        "tileId": 65,
         "bgColor": "#e60012",
         "active": true
     }

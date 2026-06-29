@@ -20,19 +20,64 @@
             flex-direction: column;
             height: 100%;
         }
+
+        /* ── Header ── */
         .header {
-            padding: 15px;
-            text-align: center;
+            padding: 12px 15px;
             background: #2a2a2a;
             border-bottom: 2px solid #00c3e3;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+        .header-left {
+            display: flex;
+            flex-direction: column;
         }
         .header h1 {
             margin: 0; font-size: 1.2rem;
             color: #00c3e3;
         }
         .header p {
-            margin: 5px 0 0 0; font-size: 0.8rem; color: #888;
+            margin: 3px 0 0 0; font-size: 0.8rem; color: #888;
         }
+
+        /* ── Timer widget ── */
+        .timer-widget {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        #timer-display {
+            font-size: 1.3rem;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            color: #00c3e3;
+            letter-spacing: 2px;
+            min-width: 60px;
+            text-align: center;
+        }
+        #timer-btn {
+            background: none;
+            border: 1.5px solid #00c3e3;
+            border-radius: 6px;
+            color: #00c3e3;
+            font-size: 1rem;
+            padding: 2px 10px;
+            cursor: pointer;
+            line-height: 1.4;
+            transition: background 0.15s;
+        }
+        #timer-btn:active { background: #00c3e340; }
+        #timer-btn.running {
+            border-color: #ff4444;
+            color: #ff4444;
+        }
+
+        /* ── Trackpad ── */
         .trackpad {
             flex: 1;
             background: radial-gradient(circle, #333, #222);
@@ -40,6 +85,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden;
         }
         .trackpad-hint {
             color: #555;
@@ -47,6 +93,22 @@
             pointer-events: none;
             user-select: none;
         }
+
+        /* Virtual pointer dot */
+        #virtual-pointer {
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ff3030 40%, #ff000090 100%);
+            box-shadow: 0 0 10px 4px #ff3030aa, 0 0 22px 8px #ff000055;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            display: none;
+            z-index: 10;
+        }
+
+        /* ── Controls ── */
         .controls {
             display: flex;
             height: 80px;
@@ -64,6 +126,8 @@
         }
         .btn:last-child { border-right: none; }
         .btn:active { background: #444; }
+
+        /* ── Status dot ── */
         .status-dot {
             display: inline-block;
             width: 10px; height: 10px;
@@ -77,18 +141,28 @@
 <body>
 
 <div class="container">
+    <!-- Header with connection status + timer -->
     <div class="header">
-        <h1><span class="status-dot" id="status-dot"></span> Controle Remoto</h1>
-        <p id="status-text">Desconectado</p>
+        <div class="header-left">
+            <h1><span class="status-dot" id="status-dot"></span> Controle Remoto</h1>
+            <p id="status-text">Desconectado</p>
+        </div>
+        <div class="timer-widget">
+            <div id="timer-display">00:00</div>
+            <button id="timer-btn">&#9654;</button>
+        </div>
     </div>
 
+    <!-- Trackpad area -->
     <div class="trackpad" id="trackpad">
-        <div class="trackpad-hint">📱 Arraste para o Laser</div>
+        <div class="trackpad-hint">&#128241; Arraste para o Laser</div>
+        <div id="virtual-pointer"></div>
     </div>
 
+    <!-- Slide controls -->
     <div class="controls">
-        <button class="btn" id="btn-prev">⬅️ Anterior</button>
-        <button class="btn" id="btn-next">Próximo ➡️</button>
+        <button class="btn" id="btn-prev">&#11013;&#65039; Anterior</button>
+        <button class="btn" id="btn-next">Pr&#243;ximo &#10145;&#65039;</button>
     </div>
 </div>
 
@@ -96,54 +170,143 @@
 <script src="/socket.io/socket.io.js"></script>
 <script>
     const socket = io();
-    
-    const statusDot = document.getElementById('status-dot');
+
+    // ── Connection status ──────────────────────────────────────
+    const statusDot  = document.getElementById('status-dot');
     const statusText = document.getElementById('status-text');
-    
+
     socket.on('connect', () => {
         statusDot.classList.add('connected');
         statusText.textContent = 'Conectado ao Computador!';
     });
-    
     socket.on('disconnect', () => {
         statusDot.classList.remove('connected');
         statusText.textContent = 'Desconectado';
     });
 
-    // Touch event handling for Trackpad
-    const trackpad = document.getElementById('trackpad');
-    
-    // To prevent laser from jumping instantly when a new touch starts, 
-    // we just track the current touch and send its coordinates.
-    // The desktop will interpolate.
+    // ── Presentation timer ─────────────────────────────────────
+    const timerDisplay = document.getElementById('timer-display');
+    const timerBtn     = document.getElementById('timer-btn');
+    let timerInterval  = null;
+    let timerSeconds   = 0;
+
+    function formatTime(secs) {
+        const m = String(Math.floor(secs / 60)).padStart(2, '0');
+        const s = String(secs % 60).padStart(2, '0');
+        return m + ':' + s;
+    }
+
+    timerBtn.addEventListener('click', () => {
+        if (timerInterval) {
+            // Stop
+            clearInterval(timerInterval);
+            timerInterval = null;
+            timerBtn.innerHTML = '&#9654;';
+            timerBtn.classList.remove('running');
+        } else {
+            // Start (reset to 0)
+            timerSeconds = 0;
+            timerDisplay.textContent = formatTime(timerSeconds);
+            timerInterval = setInterval(() => {
+                timerSeconds++;
+                timerDisplay.textContent = formatTime(timerSeconds);
+            }, 1000);
+            timerBtn.innerHTML = '&#9209;';
+            timerBtn.classList.add('running');
+        }
+    });
+
+    // ── Virtual pointer on trackpad ────────────────────────────
+    const trackpad       = document.getElementById('trackpad');
+    const virtualPointer = document.getElementById('virtual-pointer');
+    let pointerHideTimeout = null;
+
+    function showPointerAt(clientX, clientY) {
+        const rect = trackpad.getBoundingClientRect();
+        virtualPointer.style.left = (clientX - rect.left) + 'px';
+        virtualPointer.style.top  = (clientY - rect.top)  + 'px';
+        virtualPointer.style.display = 'block';
+        clearTimeout(pointerHideTimeout);
+    }
+
+    function hidePointer() {
+        pointerHideTimeout = setTimeout(() => {
+            virtualPointer.style.display = 'none';
+        }, 300);
+    }
+
+    // ── Swipe gesture state ────────────────────────────────────
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+
+    trackpad.addEventListener('touchstart', (e) => {
+        if (e.touches.length > 0) {
+            swipeStartX = e.touches[0].clientX;
+            swipeStartY = e.touches[0].clientY;
+            showPointerAt(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
     trackpad.addEventListener('touchmove', (e) => {
         e.preventDefault(); // Stop scrolling
         if (e.touches.length > 0) {
             const touch = e.touches[0];
-            const rect = trackpad.getBoundingClientRect();
-            
+            const rect  = trackpad.getBoundingClientRect();
+
+            // Show virtual pointer at finger position
+            showPointerAt(touch.clientX, touch.clientY);
+
             // Calculate percentage (0 to 1) based on trackpad size
             let x = (touch.clientX - rect.left) / rect.width;
-            let y = (touch.clientY - rect.top) / rect.height;
-            
+            let y = (touch.clientY - rect.top)  / rect.height;
+
             // Clamp values between 0 and 1
             x = Math.max(0, Math.min(1, x));
             y = Math.max(0, Math.min(1, y));
-            
+
             socket.emit('laser_move', { x, y });
         }
     }, { passive: false });
 
-    // Buttons
+    trackpad.addEventListener('touchend', (e) => {
+        hidePointer();
+
+        // Evaluate swipe gesture
+        if (e.changedTouches.length > 0) {
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
+            const dx   = endX - swipeStartX;
+            const dy   = endY - swipeStartY;
+
+            const SWIPE_MIN_X = 80;  // minimum horizontal travel (px)
+            const SWIPE_MAX_Y = 60;  // maximum vertical deviation (px)
+
+            if (Math.abs(dx) > SWIPE_MIN_X && Math.abs(dy) < SWIPE_MAX_Y) {
+                if (dx < 0) {
+                    // Swipe LEFT → next slide
+                    socket.emit('slide_control', { action: 'next' });
+                } else {
+                    // Swipe RIGHT → previous slide
+                    socket.emit('slide_control', { action: 'prev' });
+                }
+                if (navigator.vibrate) navigator.vibrate(60);
+            }
+        }
+    }, { passive: true });
+
+    trackpad.addEventListener('touchcancel', () => {
+        hidePointer();
+    }, { passive: true });
+
+    // ── Slide buttons ──────────────────────────────────────────
     document.getElementById('btn-prev').addEventListener('click', () => {
         socket.emit('slide_control', { action: 'prev' });
-        // Provide haptic feedback if supported
-        if (navigator.vibrate) navigator.vibrate(50);
+        if (navigator.vibrate) navigator.vibrate(60);
     });
-    
+
     document.getElementById('btn-next').addEventListener('click', () => {
         socket.emit('slide_control', { action: 'next' });
-        if (navigator.vibrate) navigator.vibrate(50);
+        if (navigator.vibrate) navigator.vibrate(60);
     });
 </script>
 

@@ -317,14 +317,18 @@
                             <label>Arquivo da Apresentação (PDF, PPT):</label>
                             <div class="file-picker-group">
                                 <label for="cfg-file-input" class="file-picker-btn">📁 Escolher Arquivo</label>
-                                <input type="file" id="cfg-file-input" accept=".pdf,.ppt,.pptx" style="display: none;">
+                                <input type="file" id="cfg-file-input" accept=".pdf,.ppt,.pptx,.mp4,.webm,.ogg" style="display: none;">
                                 <span class="file-name-display" id="cfg-file-display">Nenhum arquivo</span>
                                 <input type="hidden" id="cfg-file">
                             </div>
                         </div>
                         <div class="form-group">
                             <label>Slides de Texto Livres (Opcional):</label>
-                            <textarea id="cfg-slides" class="switch-input dark-input" rows="3" placeholder="Ex:\nCapa | Introdução ao tema\nTópico 1 | Conteúdo"></textarea>
+                            <textarea id="cfg-slides" class="switch-input dark-input" rows="3" placeholder="Ex:\nCapa | Introdução ao tema\nTópico 1 | Conteúdo || Notas do apresentador"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Tags / Categorias (separadas por vírgula):</label>
+                            <input type="text" id="cfg-tags" class="switch-input dark-input" placeholder="Ex: biologia, fisiologia, aula01">
                         </div>
                     </div>
                     <div class="config-form-actions">
@@ -334,7 +338,11 @@
                 </div>
             </div>
             <footer class="config-footer">
-                <button class="btn-download-gh" id="btn-download-config">📥 Baixar config_data.js para o GitHub</button>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+                    <button class="btn-download-gh" id="btn-download-config">📥 Baixar config_data.js para o GitHub</button>
+                    <button class="btn-download-gh" style="background:#0984e3;" onclick="window.exportConfig()">📤 Exportar JSON</button>
+                    <button class="btn-download-gh" style="background:#6c5ce7;" onclick="window.importConfig()">📥 Importar JSON</button>
+                </div>
             </footer>
         </div>
     </div>
