@@ -823,7 +823,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 overlayCanvas.style.position = 'absolute';
                 overlayCanvas.style.top = '0';
                 overlayCanvas.style.left = '0';
-                overlayCanvas.style.pointerEvents = 'auto'; // allow mouse events
+                overlayCanvas.style.pointerEvents = 'auto';
                 
                 wrapper.appendChild(canvas);
                 wrapper.appendChild(overlayCanvas);
@@ -831,7 +831,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 viewerContentArea.innerHTML = '';
                 viewerContentArea.appendChild(wrapper);
                 
-                setupLaserCanvas(overlayCanvas);
+                initLaser(overlayCanvas);
                 
                 await page.render({ canvasContext: ctx, viewport: viewport }).promise;
                 
@@ -929,9 +929,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // ============================================================
+    // LASER POINTER — recriado do zero
+    // ============================================================
     let isLaserActive = false;
-    let laserOverlayCanvas = null;
+    let _laserCanvas = null;   // referência ao canvas atual
+    let _laserPoints = [];     // array compartilhado de pontos
+    let _laserRAF = null;      // requestAnimationFrame handle
 
+    // Botão on/off
     const laserBtn = document.getElementById('viewer-laser-btn');
     if (laserBtn) {
         laserBtn.addEventListener('mouseenter', playSelect);
@@ -940,89 +946,108 @@ document.addEventListener('DOMContentLoaded', () => {
             isLaserActive = !isLaserActive;
             if (isLaserActive) {
                 laserBtn.classList.add('active');
-                if (laserOverlayCanvas) laserOverlayCanvas.classList.add('laser-active-cursor');
+                if (_laserCanvas) _laserCanvas.style.cursor = 'crosshair';
             } else {
                 laserBtn.classList.remove('active');
-                if (laserOverlayCanvas) laserOverlayCanvas.classList.remove('laser-active-cursor');
+                if (_laserCanvas) _laserCanvas.style.cursor = '';
+                _laserPoints = []; // limpa rastro ao desativar
             }
         });
     }
 
-    function setupLaserCanvas(canvas) {
-        laserOverlayCanvas = canvas;
-        if (isLaserActive) {
-            laserOverlayCanvas.classList.add('laser-active-cursor');
-        }
-        
-        const ctx = canvas.getContext('2d');
-        let isDrawing = false;
-        let points = [];
-        
-        window.addLaserPoint = (x, y) => {
-            if (!isLaserActive) return;
-            points.push({ x, y, time: Date.now() });
-        };
+    // Chamada quando um novo PDF é renderizado
+    function initLaser(canvas) {
+        // Para o loop anterior se houver
+        _laserCanvas = canvas;
+        _laserPoints = [];
 
+        if (isLaserActive) canvas.style.cursor = 'crosshair';
+
+        const ctx = canvas.getContext('2d');
+
+        // --- Mouse: precisa clicar e arrastar ---
+        let mouseDown = false;
         canvas.addEventListener('mousedown', (e) => {
             if (!isLaserActive) return;
-            isDrawing = true;
-            window.addLaserPoint(e.offsetX, e.offsetY);
+            mouseDown = true;
+            _laserPoints.push({ x: e.offsetX, y: e.offsetY, t: Date.now() });
         });
-
         canvas.addEventListener('mousemove', (e) => {
-            if (!isLaserActive || !isDrawing) return;
-            points.push({ x: e.offsetX, y: e.offsetY, time: Date.now() });
+            if (!isLaserActive || !mouseDown) return;
+            _laserPoints.push({ x: e.offsetX, y: e.offsetY, t: Date.now() });
         });
+        canvas.addEventListener('mouseup',  () => { mouseDown = false; });
+        canvas.addEventListener('mouseleave', () => { mouseDown = false; });
 
-        canvas.addEventListener('mouseup', () => {
-            isDrawing = false;
-        });
+        // --- Celular (chamado pelo socket): só precisa da posição ---
+        // A função recebe x,y em proporção 0-1 relativa ao tamanho do canvas
+        window.laserRemotePoint = (ratioX, ratioY) => {
+            if (!isLaserActive || !_laserCanvas) return;
+            const x = ratioX * _laserCanvas.width;
+            const y = ratioY * _laserCanvas.height;
+            _laserPoints.push({ x, y, t: Date.now() });
+        };
 
-        canvas.addEventListener('mouseout', () => {
-            isDrawing = false;
-        });
-
-        function animateLaser() {
-            if (!laserOverlayCanvas) return;
+        // --- Loop de animação ---
+        function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const now = Date.now();
-            
-            // Keep points from the last 600ms
-            points = points.filter(p => now - p.time < 600);
-            
-            if (points.length > 0) {
-                ctx.beginPath();
-                for (let i = 0; i < points.length; i++) {
-                    const p = points[i];
-                    const age = now - p.time;
-                    const opacity = Math.max(0, 1 - (age / 600));
-                    
-                    if (i === 0) ctx.moveTo(p.x, p.y);
-                    else ctx.lineTo(p.x, p.y);
-                    
-                    if (i === points.length - 1) {
-                        ctx.strokeStyle = `rgba(255, 59, 48, ${opacity})`;
-                        ctx.lineWidth = 6;
-                        ctx.lineCap = 'round';
-                        ctx.lineJoin = 'round';
-                        ctx.stroke();
-                        
-                        ctx.beginPath();
-                        ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
-                        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
-                        ctx.fill();
-                        ctx.strokeStyle = `rgba(255, 59, 48, ${opacity})`;
-                        ctx.lineWidth = 3;
-                        ctx.stroke();
-                        ctx.beginPath();
-                        ctx.moveTo(p.x, p.y);
-                    }
-                }
+            const FADE = 700; // ms que o rastro dura
+
+            // Remove pontos velhos
+            _laserPoints = _laserPoints.filter(p => now - p.t < FADE);
+
+            if (_laserPoints.length < 1) {
+                _laserRAF = requestAnimationFrame(draw);
+                return;
             }
-            requestAnimationFrame(animateLaser);
+
+            // Desenha rastro segmentado com opacidade variável
+            for (let i = 1; i < _laserPoints.length; i++) {
+                const prev = _laserPoints[i - 1];
+                const curr = _laserPoints[i];
+                const age  = now - curr.t;
+                const alpha = Math.max(0, 1 - age / FADE);
+
+                ctx.beginPath();
+                ctx.moveTo(prev.x, prev.y);
+                ctx.lineTo(curr.x, curr.y);
+                ctx.strokeStyle = `rgba(255, 30, 30, ${alpha})`;
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.stroke();
+            }
+
+            // Ponto brilhante no final
+            const tip = _laserPoints[_laserPoints.length - 1];
+            const tipAge   = now - tip.t;
+            const tipAlpha = Math.max(0, 1 - tipAge / FADE);
+
+            // Brilho externo
+            ctx.beginPath();
+            ctx.arc(tip.x, tip.y, 10, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 80, 80, ${tipAlpha * 0.4})`;
+            ctx.fill();
+
+            // Ponto central branco
+            ctx.beginPath();
+            ctx.arc(tip.x, tip.y, 4, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${tipAlpha})`;
+            ctx.fill();
+
+            // Borda vermelha
+            ctx.beginPath();
+            ctx.arc(tip.x, tip.y, 4, 0, Math.PI * 2);
+            ctx.strokeStyle = `rgba(255, 30, 30, ${tipAlpha})`;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            _laserRAF = requestAnimationFrame(draw);
         }
-        animateLaser();
+        draw();
     }
+    // ============================================================
 
     if (closeViewerBtn) {
         closeViewerBtn.addEventListener('mouseenter', playSelect);
@@ -1444,16 +1469,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const socket = io();
                 
                 socket.on('laser_move', (data) => {
-                    const viewerModal = document.getElementById('presentation-viewer-modal');
-                    const isActive = viewerModal && viewerModal.classList.contains('active');
-                    if (isActive && document.getElementById('viewer-laser-btn').classList.contains('active')) {
-                        const canvas = document.getElementById('laser-overlay');
-                        if (canvas && typeof window.addLaserPoint === 'function') {
-                            const rect = canvas.getBoundingClientRect();
-                            const x = data.x * rect.width;
-                            const y = data.y * rect.height;
-                            window.addLaserPoint(x, y);
-                        }
+                    // Chama a função global exposta pelo initLaser
+                    if (typeof window.laserRemotePoint === 'function') {
+                        window.laserRemotePoint(data.x, data.y);
                     }
                 });
 
