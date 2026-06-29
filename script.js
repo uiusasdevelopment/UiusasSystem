@@ -260,12 +260,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const savedProfiles = localStorage.getItem('switch_profiles_data');
-    if (savedProfiles && (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    if (savedProfiles && window.location.protocol === 'file:') {
         try { profiles = JSON.parse(savedProfiles); } catch (e) { console.error('Error loading profiles', e); }
     }
 
     const savedPres = localStorage.getItem('switch_presentations_data');
-    if (savedPres && (window.location.protocol === 'file:' || window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')) {
+    if (savedPres && window.location.protocol === 'file:') {
         try { presentations = JSON.parse(savedPres); } catch (e) { console.error('Error loading presentations', e); }
     }
 
