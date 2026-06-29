@@ -253,11 +253,27 @@
             <footer class="viewer-footer">
                 <button class="viewer-nav-btn" id="viewer-prev-btn">◀ Anterior</button>
                 <div style="display:flex; align-items:center; gap: 15px;">
+                    <button id="viewer-remote-btn" class="laser-btn" style="background:#0984e3;" title="Controle Remoto pelo Celular">📱 Controle Remoto</button>
                     <button id="viewer-laser-btn" class="laser-btn" title="Laser Pointer">🔴 Laser</button>
                     <span id="viewer-slide-counter">Slide 1 / 1</span>
                 </div>
                 <button class="viewer-nav-btn" id="viewer-next-btn">Próximo ▶</button>
             </footer>
+        </div>
+    </div>
+
+    <!-- QR Code Modal para Controle Remoto -->
+    <div id="qr-modal" class="modal-overlay" style="z-index: 10001;">
+        <div class="modal-box" style="text-align: center; max-width: 350px;">
+            <header class="modal-header">
+                <h2>📱 Escaneie com o Celular</h2>
+                <button class="close-btn" id="close-qr-btn">✕</button>
+            </header>
+            <div style="padding: 20px;">
+                <p style="margin-bottom: 20px; color: #555;">Conecte na mesma rede Wi-Fi e escaneie o código abaixo para usar o celular como passador de slides e Laser!</p>
+                <img id="qr-image" src="" alt="QR Code" style="width: 200px; height: 200px; border-radius: 8px;">
+                <p id="qr-loading-text" style="color: #888; margin-top:10px;">Carregando...</p>
+            </div>
         </div>
     </div>
 

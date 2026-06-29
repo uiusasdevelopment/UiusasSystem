@@ -1388,6 +1388,81 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // --- Controle Remoto ---
+    const viewerRemoteBtn = document.getElementById('viewer-remote-btn');
+    const qrModal = document.getElementById('qr-modal');
+    const closeQrBtn = document.getElementById('close-qr-btn');
+    const qrImage = document.getElementById('qr-image');
+    const qrLoadingText = document.getElementById('qr-loading-text');
+
+    if (viewerRemoteBtn) {
+        viewerRemoteBtn.addEventListener('click', async () => {
+            playSelect();
+            if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                alert('⚠️ O Controle Remoto via celular só funciona quando você estiver rodando o Servidor Local (npm start). No GitHub Pages ele é desativado.');
+                return;
+            }
+
+            qrModal.classList.add('active');
+            qrLoadingText.style.display = 'block';
+            qrImage.style.display = 'none';
+
+            try {
+                const res = await fetch('http://localhost:3000/api/local-ip');
+                const data = await res.json();
+                const remoteUrl = `http://${data.ip}:3000/remote.html`;
+                qrImage.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(remoteUrl)}`;
+                qrImage.onload = () => {
+                    qrLoadingText.style.display = 'none';
+                    qrImage.style.display = 'block';
+                };
+            } catch(e) {
+                console.error(e);
+                qrLoadingText.textContent = 'Erro ao conectar com o servidor local.';
+            }
+        });
+    }
+
+    if (closeQrBtn) {
+        closeQrBtn.addEventListener('click', () => {
+            playSelect();
+            qrModal.classList.remove('active');
+        });
+    }
+
+    // Connect to local Socket.IO server if running on localhost
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        const socketScript = document.createElement('script');
+        socketScript.src = '/socket.io/socket.io.js';
+        socketScript.onload = () => {
+            if (typeof io !== 'undefined') {
+                const socket = io();
+                
+                socket.on('laser_move', (data) => {
+                    if (isPresentationViewActive && document.getElementById('viewer-laser-btn').classList.contains('active')) {
+                        const canvas = document.getElementById('laser-overlay');
+                        if (canvas) {
+                            const rect = canvas.getBoundingClientRect();
+                            const x = data.x * rect.width;
+                            const y = data.y * rect.height;
+                            laserPoints.push({ x, y, time: performance.now() });
+                        }
+                    }
+                });
+
+                socket.on('slide_control', (data) => {
+                    if (isPresentationViewActive) {
+                        const prevBtn = document.getElementById('viewer-prev-btn');
+                        const nextBtn = document.getElementById('viewer-next-btn');
+                        if (data.action === 'prev' && prevBtn) prevBtn.click();
+                        if (data.action === 'next' && nextBtn) nextBtn.click();
+                    }
+                });
+            }
+        };
+        document.body.appendChild(socketScript);
+    }
+
     // Initial render
     renderProfiles();
     renderPresentationsCarousel();
